@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { Task, type TaskDocument } from './schemas/task.schema';
+import { Task, TaskStatus, type TaskDocument } from './schemas/task.schema';
 import type { CreateTaskDto } from './dto/create-task.dto';
 import type { UpdateTaskDto } from './dto/update-task.dto';
 import type { QueryTaskDto } from './dto/query-task.dto';
@@ -64,14 +64,8 @@ export class TasksService {
     return task;
   }
 
-  async create(
-    dto: CreateTaskDto,
-    userId: string,
-  ): Promise<TaskDocument> {
-    const hasAccess = await this.projectsService.hasAccess(
-      dto.project,
-      userId,
-    );
+  async create(dto: CreateTaskDto, userId: string): Promise<TaskDocument> {
+    const hasAccess = await this.projectsService.hasAccess(dto.project, userId);
     if (!hasAccess) {
       throw new ForbiddenException('Access denied to project');
     }
@@ -92,7 +86,7 @@ export class TasksService {
     const task = new this.taskModel({
       title: dto.title,
       description: dto.description,
-      status: dto.status ?? 'todo',
+      status: dto.status ?? TaskStatus.TODO,
       project: new Types.ObjectId(dto.project),
       creator: new Types.ObjectId(userId),
       parentTask: dto.parentTask
@@ -129,10 +123,13 @@ export class TasksService {
       }
       task.parentTask = new Types.ObjectId(dto.parentTask);
     }
-    if (dto.title !== undefined) task.title = dto.title;
-    if (dto.description !== undefined) task.description = dto.description;
-    if (dto.status !== undefined) task.status = dto.status;
-    if (dto.deadline !== undefined) task.deadline = new Date(dto.deadline);
+    const updates: Partial<Record<keyof UpdateTaskDto, unknown>> = {};
+    if (dto.title !== undefined) updates.title = dto.title;
+    if (dto.description !== undefined) updates.description = dto.description;
+    if (dto.status !== undefined) updates.status = dto.status;
+    if (dto.deadline !== undefined) updates.deadline = dto.deadline;
+    if (dto.country !== undefined) updates.country = dto.country;
+    Object.assign(task, updates);
     if (dto.tags !== undefined) {
       const projectId = task.project.toString();
       for (const tagId of dto.tags) {
@@ -143,7 +140,6 @@ export class TasksService {
       }
       task.tags = dto.tags.map((id) => new Types.ObjectId(id));
     }
-    if (dto.country !== undefined) task.country = dto.country;
     return task.save();
   }
 

@@ -14,6 +14,7 @@ import {
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { CommentsService } from './comments.service';
 import { CreateCommentDto } from './dto/create-comment.dto';
+import { CommentResponseDto } from './dto/comment-response.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 import { QueryCommentDto } from './dto/query-comment.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -29,14 +30,14 @@ export class CommentsController {
 
   @Get()
   @ApiOperation({ summary: 'List task comments' })
-  @ApiResponse({ status: 200, description: 'List of comments' })
+  @ApiResponse({ status: 200, description: 'List of comments', type: [CommentResponseDto] })
   findAll(@Query() query: QueryCommentDto, @CurrentUser() user: UserDocument) {
     return this.commentsService.findAll(query.task, user._id.toString());
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get comment by id' })
-  @ApiResponse({ status: 200, description: 'Comment' })
+  @ApiResponse({ status: 200, description: 'Comment', type: CommentResponseDto })
   @ApiResponse({ status: 404, description: 'Comment not found' })
   findOne(@Param('id') id: string, @CurrentUser() user: UserDocument) {
     return this.commentsService.findOne(id, user._id.toString());
@@ -44,7 +45,7 @@ export class CommentsController {
 
   @Post()
   @ApiOperation({ summary: 'Create comment' })
-  @ApiResponse({ status: 201, description: 'Comment created' })
+  @ApiResponse({ status: 201, description: 'Comment created', type: CommentResponseDto })
   create(
     @Body() dto: CreateCommentDto,
     @CurrentUser() user: UserDocument,
@@ -54,7 +55,7 @@ export class CommentsController {
 
   @Patch(':id')
   @ApiOperation({ summary: 'Update comment' })
-  @ApiResponse({ status: 200, description: 'Comment updated' })
+  @ApiResponse({ status: 200, description: 'Comment updated', type: CommentResponseDto })
   @ApiResponse({ status: 403, description: 'Forbidden' })
   update(
     @Param('id') id: string,

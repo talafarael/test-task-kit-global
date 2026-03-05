@@ -4,10 +4,11 @@ import {
   IsOptional,
   IsMongoId,
   IsEnum,
-  IsDateString,
+  IsDate,
   IsArray,
   MinLength,
 } from 'class-validator';
+import { Transform } from 'class-transformer';
 import { TaskStatus } from '../schemas/task.schema';
 
 export class CreateTaskDto {
@@ -42,9 +43,12 @@ export class CreateTaskDto {
   tags?: string[];
 
   @ApiProperty({ example: '2025-12-31T23:59:59.000Z', required: false })
-  @IsDateString()
+  @Transform(({ value }) =>
+    value != null && value !== '' ? new Date(value) : value,
+  )
   @IsOptional()
-  deadline?: string;
+  @IsDate()
+  deadline?: Date;
 
   @ApiProperty({ example: 'Russia', description: 'Country of task creation', required: false })
   @IsString()

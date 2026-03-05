@@ -42,6 +42,10 @@ lerna-debug.log*
 .env.production.local
 .env.local
 
+# MongoDB data (docker volumes)
+mongodb_data
+mongodb_data_prod
+
 # temp directory
 .temp
 .tmp

@@ -14,6 +14,7 @@ import {
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { TagsService } from './tags.service';
 import { CreateTagDto } from './dto/create-tag.dto';
+import { TagResponseDto } from './dto/tag-response.dto';
 import { UpdateTagDto } from './dto/update-tag.dto';
 import { QueryTagDto } from './dto/query-tag.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -29,14 +30,14 @@ export class TagsController {
 
   @Get()
   @ApiOperation({ summary: 'List project tags' })
-  @ApiResponse({ status: 200, description: 'List of tags' })
+  @ApiResponse({ status: 200, description: 'List of tags', type: [TagResponseDto] })
   findAll(@Query() query: QueryTagDto, @CurrentUser() user: UserDocument) {
     return this.tagsService.findAll(query.project, user._id.toString());
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get tag by id' })
-  @ApiResponse({ status: 200, description: 'Tag' })
+  @ApiResponse({ status: 200, description: 'Tag', type: TagResponseDto })
   @ApiResponse({ status: 404, description: 'Tag not found' })
   findOne(@Param('id') id: string, @CurrentUser() user: UserDocument) {
     return this.tagsService.findOne(id, user._id.toString());
@@ -44,7 +45,7 @@ export class TagsController {
 
   @Post()
   @ApiOperation({ summary: 'Create tag' })
-  @ApiResponse({ status: 201, description: 'Tag created' })
+  @ApiResponse({ status: 201, description: 'Tag created', type: TagResponseDto })
   create(
     @Body() dto: CreateTagDto,
     @CurrentUser() user: UserDocument,
@@ -54,7 +55,7 @@ export class TagsController {
 
   @Patch(':id')
   @ApiOperation({ summary: 'Update tag' })
-  @ApiResponse({ status: 200, description: 'Tag updated' })
+  @ApiResponse({ status: 200, description: 'Tag updated', type: TagResponseDto })
   update(
     @Param('id') id: string,
     @Body() dto: UpdateTagDto,

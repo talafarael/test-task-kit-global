@@ -14,6 +14,7 @@ import {
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { TasksService } from './tasks.service';
 import { CreateTaskDto } from './dto/create-task.dto';
+import { TaskResponseDto } from './dto/task-response.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { QueryTaskDto } from './dto/query-task.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -29,21 +30,21 @@ export class TasksController {
 
   @Get()
   @ApiOperation({ summary: 'List tasks with filters' })
-  @ApiResponse({ status: 200, description: 'List of tasks' })
+  @ApiResponse({ status: 200, description: 'List of tasks', type: [TaskResponseDto] })
   findAll(@Query() query: QueryTaskDto, @CurrentUser() user: UserDocument) {
     return this.tasksService.findAll(user._id.toString(), query);
   }
 
   @Get(':id/subtasks')
   @ApiOperation({ summary: 'Get subtasks' })
-  @ApiResponse({ status: 200, description: 'List of subtasks' })
+  @ApiResponse({ status: 200, description: 'List of subtasks', type: [TaskResponseDto] })
   findSubtasks(@Param('id') id: string, @CurrentUser() user: UserDocument) {
     return this.tasksService.findSubtasks(id, user._id.toString());
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get task by id' })
-  @ApiResponse({ status: 200, description: 'Task' })
+  @ApiResponse({ status: 200, description: 'Task', type: TaskResponseDto })
   @ApiResponse({ status: 404, description: 'Task not found' })
   findOne(@Param('id') id: string, @CurrentUser() user: UserDocument) {
     return this.tasksService.findOne(id, user._id.toString());
@@ -51,7 +52,7 @@ export class TasksController {
 
   @Post()
   @ApiOperation({ summary: 'Create task' })
-  @ApiResponse({ status: 201, description: 'Task created' })
+  @ApiResponse({ status: 201, description: 'Task created', type: TaskResponseDto })
   create(
     @Body() dto: CreateTaskDto,
     @CurrentUser() user: UserDocument,
@@ -61,7 +62,7 @@ export class TasksController {
 
   @Patch(':id')
   @ApiOperation({ summary: 'Update task' })
-  @ApiResponse({ status: 200, description: 'Task updated' })
+  @ApiResponse({ status: 200, description: 'Task updated', type: TaskResponseDto })
   update(
     @Param('id') id: string,
     @Body() dto: UpdateTaskDto,

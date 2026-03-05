@@ -1,7 +1,7 @@
 import { Controller, Post, Body, Get, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
-import { TokenResponse } from './types/token-response.interface';
+import { TokenResponseDto } from './dto/token-response.dto';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { LocalAuthGuard } from './guards/local-auth.guard';
@@ -16,21 +16,21 @@ export class AuthController {
 
   @Post('register')
   @ApiOperation({ summary: 'Register new user' })
-  @ApiResponse({ status: 201, description: 'User registered', type: TokenResponse })
+  @ApiResponse({ status: 201, description: 'User registered', type: TokenResponseDto })
   @ApiResponse({ status: 409, description: 'Email already exists' })
-  async register(@Body() dto: RegisterDto): Promise<TokenResponse> {
+  async register(@Body() dto: RegisterDto): Promise<TokenResponseDto> {
     return this.authService.register(dto.email, dto.password, dto.name);
   }
 
   @Post('login')
   @UseGuards(LocalAuthGuard)
   @ApiOperation({ summary: 'Login' })
-  @ApiResponse({ status: 201, description: 'Login successful', type: TokenResponse })
+  @ApiResponse({ status: 201, description: 'Login successful', type: TokenResponseDto })
   @ApiResponse({ status: 401, description: 'Invalid credentials' })
   async login(
     @Body() _dto: LoginDto,
     @CurrentUser() user: UserDocument,
-  ): Promise<TokenResponse> {
+  ): Promise<TokenResponseDto> {
     return this.authService.login(user);
   }
 
