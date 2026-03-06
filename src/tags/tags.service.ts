@@ -71,20 +71,17 @@ export class TagsService {
     userId: string,
   ): Promise<TagDocument> {
     const tag = await this.findOne(id, userId);
-    if (dto.name !== undefined) {
-      const existing = await this.tagModel
-        .findOne({
-          project: tag.project,
-          name: { $regex: new RegExp(`^${dto.name}$`, 'i') },
-          _id: { $ne: id },
-        })
-        .exec();
-      if (existing) {
-        throw new ConflictException('Tag with this name already exists');
-      }
-      tag.name = dto.name;
+    const existing = await this.tagModel
+      .findOne({
+        project: tag.project,
+        name: { $regex: new RegExp(`^${dto.name}$`, 'i') },
+        _id: { $ne: id },
+      })
+      .exec();
+    if (existing) {
+      throw new ConflictException('Tag with this name already exists');
     }
-    if (dto.color !== undefined) tag.color = dto.color;
+    Object.assign(tag, dto);
     return tag.save();
   }
 

@@ -19,7 +19,7 @@ export class TasksService {
     @InjectModel(Task.name) private readonly taskModel: Model<TaskDocument>,
     private readonly projectsService: ProjectsService,
     private readonly tagsService: TagsService,
-  ) {}
+  ) { }
 
   async findAll(userId: string, query: QueryTaskDto): Promise<TaskDocument[]> {
     const filter: Record<string, unknown> = {};
@@ -105,41 +105,37 @@ export class TasksService {
     userId: string,
   ): Promise<TaskDocument> {
     const task = await this.findOne(id, userId);
-    if (dto.project && dto.project !== task.project.toString()) {
-      const hasAccess = await this.projectsService.hasAccess(
-        dto.project,
-        userId,
-      );
-      if (!hasAccess) {
-        throw new ForbiddenException('Access denied to project');
-      }
-      task.project = new Types.ObjectId(dto.project);
+    const hasAccess = await this.projectsService.hasAccess(
+      dto.project,
+      userId,
+    );
+    if (!hasAccess) {
+      throw new ForbiddenException('Access denied to project');
     }
     if (dto.parentTask) {
       const parent = await this.taskModel.findById(dto.parentTask).exec();
-      const projectId = dto.project ?? task.project.toString();
-      if (!parent || parent.project.toString() !== projectId) {
+      if (!parent || parent.project.toString() !== dto.project) {
         throw new BadRequestException('Invalid parent task');
       }
-      task.parentTask = new Types.ObjectId(dto.parentTask);
     }
-    const updates: Partial<Record<keyof UpdateTaskDto, unknown>> = {};
-    if (dto.title !== undefined) updates.title = dto.title;
-    if (dto.description !== undefined) updates.description = dto.description;
-    if (dto.status !== undefined) updates.status = dto.status;
-    if (dto.deadline !== undefined) updates.deadline = dto.deadline;
-    if (dto.country !== undefined) updates.country = dto.country;
-    Object.assign(task, updates);
-    if (dto.tags !== undefined) {
-      const projectId = task.project.toString();
+    if (dto.tags?.length) {
       for (const tagId of dto.tags) {
         const tag = await this.tagsService.findOne(tagId, userId);
-        if (tag.project.toString() !== projectId) {
+        if (tag.project.toString() !== dto.project) {
           throw new BadRequestException('Tag must belong to task project');
         }
       }
-      task.tags = dto.tags.map((id) => new Types.ObjectId(id));
     }
+    Object.assign(task, {
+      ...dto,
+      status: dto.status ?? TaskStatus.TODO,
+      project: new Types.ObjectId(dto.project),
+      parentTask: dto.parentTask
+        ? new Types.ObjectId(dto.parentTask)
+        : undefined,
+      tags: dto.tags?.map((id) => new Types.ObjectId(id)) ?? [],
+      deadline: dto.deadline ? new Date(dto.deadline) : undefined,
+    });
     return task.save();
   }
 

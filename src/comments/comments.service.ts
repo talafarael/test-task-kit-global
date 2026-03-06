@@ -56,7 +56,7 @@ export class CommentsService {
     if (comment.author.toString() !== userId) {
       throw new ForbiddenException('Only author can edit comment');
     }
-    if (dto.content !== undefined) comment.content = dto.content;
+    Object.assign(comment, dto);
     return comment.save();
   }
 
