@@ -11,6 +11,7 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
+import { ParseMongoIdPipe } from '../common/pipes/parse-mongo-id.pipe';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { TagsService } from './tags.service';
 import { CreateTagDto } from './dto/create-tag.dto';
@@ -39,7 +40,7 @@ export class TagsController {
   @ApiOperation({ summary: 'Get tag by id' })
   @ApiResponse({ status: 200, description: 'Tag', type: TagResponseDto })
   @ApiResponse({ status: 404, description: 'Tag not found' })
-  findOne(@Param('id') id: string, @CurrentUser() user: UserDocument) {
+  findOne(@Param('id', ParseMongoIdPipe) id: string, @CurrentUser() user: UserDocument) {
     return this.tagsService.findOne(id, user._id.toString());
   }
 
@@ -57,7 +58,7 @@ export class TagsController {
   @ApiOperation({ summary: 'Update tag' })
   @ApiResponse({ status: 200, description: 'Tag updated', type: TagResponseDto })
   update(
-    @Param('id') id: string,
+    @Param('id', ParseMongoIdPipe) id: string,
     @Body() dto: UpdateTagDto,
     @CurrentUser() user: UserDocument,
   ) {
@@ -69,7 +70,7 @@ export class TagsController {
   @ApiOperation({ summary: 'Delete tag' })
   @ApiResponse({ status: 204, description: 'Tag deleted' })
   async remove(
-    @Param('id') id: string,
+    @Param('id', ParseMongoIdPipe) id: string,
     @CurrentUser() user: UserDocument,
   ): Promise<void> {
     await this.tagsService.remove(id, user._id.toString());

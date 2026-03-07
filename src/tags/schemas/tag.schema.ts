@@ -17,4 +17,17 @@ export class Tag {
 
 export const TagSchema = SchemaFactory.createForClass(Tag);
 
+TagSchema.pre('deleteOne', { document: true, query: false }, async function() {
+  const tagId = this._id;
+  await this.model('Task')
+    .updateMany(
+      {
+        tags: tagId,
+      },
+      {
+        $pull: { tags: tagId },
+      },
+    )
+    .exec();
+});
 TagSchema.index({ project: 1, name: 1 }, { unique: true });

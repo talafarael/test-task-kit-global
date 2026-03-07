@@ -48,6 +48,19 @@ export class Task {
 
 export const TaskSchema = SchemaFactory.createForClass(Task);
 
+TaskSchema.pre(
+  'deleteOne',
+  { document: true, query: false },
+  async function() {
+    await Promise.all([
+      this.model('Comment').deleteMany({ task: this._id }),
+      this.model('Task').updateMany(
+        { parentTask: this._id },
+        { $unset: { parentTask: 1 } },
+      ),
+    ]);
+  },
+);
 TaskSchema.index({ title: 'text', description: 'text' });
 TaskSchema.index({ country: 1 });
 TaskSchema.index({ project: 1, status: 1 });

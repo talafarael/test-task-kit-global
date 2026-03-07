@@ -37,7 +37,11 @@ describe('TasksController', () => {
   });
 
   it('findAll returns array', async () => {
-    const result = await controller.findAll({}, mockUser as never);
+    const result = await controller.findAll(
+      '507f1f77bcf86cd799439011',
+      {},
+      mockUser as never,
+    );
     expect(result).toEqual([]);
   });
 

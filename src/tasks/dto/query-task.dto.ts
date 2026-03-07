@@ -1,13 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional, IsMongoId, IsEnum, IsIn, IsString } from 'class-validator';
+import { IsOptional, IsEnum, IsIn, IsString } from 'class-validator';
 import { TaskStatus } from '../schemas/task.schema';
 
-export class QueryTaskDto {
-  @ApiProperty({ required: false })
-  @IsMongoId()
-  @IsOptional()
-  project?: string;
-
+export class QueryTaskFiltersDto {
   @ApiProperty({ example: 'Russia', required: false })
   @IsString()
   @IsOptional()
@@ -27,4 +22,8 @@ export class QueryTaskDto {
   @IsOptional()
   @IsIn(['asc', 'desc'])
   sortOrder?: 'asc' | 'desc';
+}
+
+export interface QueryTaskDto extends QueryTaskFiltersDto {
+  project: string;
 }

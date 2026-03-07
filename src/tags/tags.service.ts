@@ -1,8 +1,8 @@
 import {
   Injectable,
   NotFoundException,
-  ForbiddenException,
   ConflictException,
+  BadRequestException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
@@ -16,14 +16,13 @@ export class TagsService {
   constructor(
     @InjectModel(Tag.name) private readonly tagModel: Model<TagDocument>,
     private readonly projectsService: ProjectsService,
-  ) {}
+  ) { }
 
   async findAll(projectId: string, userId: string): Promise<TagDocument[]> {
-    const hasAccess = await this.projectsService.hasAccess(projectId, userId);
-    if (!hasAccess) {
-      throw new ForbiddenException('Access denied to project');
-    }
-    return this.tagModel.find({ project: new Types.ObjectId(projectId) }).exec();
+    await this.projectsService.assertAccess(projectId, userId);
+    return this.tagModel
+      .find({ project: new Types.ObjectId(projectId) })
+      .exec();
   }
 
   async findOne(id: string, userId: string): Promise<TagDocument> {
@@ -31,24 +30,12 @@ export class TagsService {
     if (!tag) {
       throw new NotFoundException('Tag not found');
     }
-    const hasAccess = await this.projectsService.hasAccess(
-      tag.project.toString(),
-      userId,
-    );
-    if (!hasAccess) {
-      throw new ForbiddenException('Access denied');
-    }
+    await this.projectsService.assertAccess(tag.project.toString(), userId);
     return tag;
   }
 
   async create(dto: CreateTagDto, userId: string): Promise<TagDocument> {
-    const hasAccess = await this.projectsService.hasAccess(
-      dto.project,
-      userId,
-    );
-    if (!hasAccess) {
-      throw new ForbiddenException('Access denied to project');
-    }
+    await this.projectsService.assertAccess(dto.project, userId);
     const existing = await this.tagModel
       .findOne({
         project: dto.project,
@@ -86,7 +73,20 @@ export class TagsService {
   }
 
   async remove(id: string, userId: string): Promise<void> {
-    await this.findOne(id, userId);
-    await this.tagModel.findByIdAndDelete(id).exec();
+    const tag = await this.findOne(id, userId);
+    await tag.deleteOne();
+  }
+
+  async validateTagsBelongToProject(
+    ids: string[],
+    userId: string,
+    project: string,
+  ): Promise<void> {
+    for (const tagId of ids) {
+      const tag = await this.findOne(tagId, userId);
+      if (tag.project.toString() !== project) {
+        throw new BadRequestException('Tag must belong to task project');
+      }
+    }
   }
 }

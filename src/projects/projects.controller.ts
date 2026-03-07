@@ -10,6 +10,7 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
+import { ParseMongoIdPipe } from '../common/pipes/parse-mongo-id.pipe';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { ProjectsService } from './projects.service';
 import { CreateProjectDto } from './dto/create-project.dto';
@@ -37,7 +38,7 @@ export class ProjectsController {
   @ApiOperation({ summary: 'Get project by id' })
   @ApiResponse({ status: 200, description: 'Project', type: ProjectResponseDto })
   @ApiResponse({ status: 404, description: 'Project not found' })
-  findOne(@Param('id') id: string, @CurrentUser() user: UserDocument) {
+  findOne(@Param('id', ParseMongoIdPipe) id: string, @CurrentUser() user: UserDocument) {
     return this.projectsService.findOne(id, user._id.toString());
   }
 
@@ -56,7 +57,7 @@ export class ProjectsController {
   @ApiResponse({ status: 200, description: 'Project updated', type: ProjectResponseDto })
   @ApiResponse({ status: 403, description: 'Forbidden' })
   update(
-    @Param('id') id: string,
+    @Param('id', ParseMongoIdPipe) id: string,
     @Body() dto: UpdateProjectDto,
     @CurrentUser() user: UserDocument,
   ) {
@@ -69,7 +70,7 @@ export class ProjectsController {
   @ApiResponse({ status: 204, description: 'Project deleted' })
   @ApiResponse({ status: 403, description: 'Forbidden' })
   async remove(
-    @Param('id') id: string,
+    @Param('id', ParseMongoIdPipe) id: string,
     @CurrentUser() user: UserDocument,
   ): Promise<void> {
     await this.projectsService.remove(id, user._id.toString());

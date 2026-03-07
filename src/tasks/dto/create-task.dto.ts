@@ -28,6 +28,7 @@ export class CreateTaskDto {
 
   @ApiProperty({ enum: TaskStatus, required: false })
   @IsEnum(TaskStatus)
+  @Transform(({ value }) => value ?? TaskStatus.TODO)
   @IsOptional()
   status?: TaskStatus;
 
@@ -50,7 +51,11 @@ export class CreateTaskDto {
   @IsDate()
   deadline?: Date;
 
-  @ApiProperty({ example: 'Russia', description: 'Country of task creation', required: false })
+  @ApiProperty({
+    example: 'Russia',
+    description: 'Country of task creation',
+    required: false,
+  })
   @IsString()
   @IsOptional()
   country?: string;

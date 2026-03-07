@@ -33,7 +33,7 @@ describe('TagsService', () => {
         { provide: getModelToken(Tag.name), useValue: model },
         {
           provide: ProjectsService,
-          useValue: { hasAccess: jest.fn().mockResolvedValue(true) },
+          useValue: { assertAccess: jest.fn().mockResolvedValue(undefined) },
         },
       ],
     }).compile();

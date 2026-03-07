@@ -9,7 +9,9 @@ const mockUserModel = Object.assign(
     return { save: jest.fn().mockResolvedValue({ _id: '1', email: 'a@a.com', name: 'A' }) };
   },
   {
-    findOne: jest.fn().mockReturnValue({ exec: jest.fn().mockResolvedValue(null) }),
+    findOne: jest.fn().mockReturnValue({
+      select: jest.fn().mockReturnValue({ exec: jest.fn().mockResolvedValue(null) }),
+    }),
     findById: jest.fn().mockReturnValue({ exec: jest.fn().mockResolvedValue(null) }),
   },
 );
@@ -39,7 +41,9 @@ describe('UsersService', () => {
 
   it('create throws ConflictException when email exists', async () => {
     mockUserModel.findOne.mockReturnValue({
-      exec: jest.fn().mockResolvedValue({ _id: '1', email: 'a@a.com' }),
+      select: jest.fn().mockReturnValue({
+        exec: jest.fn().mockResolvedValue({ _id: '1', email: 'a@a.com' }),
+      }),
     });
     await expect(service.create('a@a.com', 'pass', 'A')).rejects.toThrow(
       ConflictException,

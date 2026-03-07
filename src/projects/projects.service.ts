@@ -12,8 +12,9 @@ import type { UpdateProjectDto } from './dto/update-project.dto';
 @Injectable()
 export class ProjectsService {
   constructor(
-    @InjectModel(Project.name) private readonly projectModel: Model<ProjectDocument>,
-  ) {}
+    @InjectModel(Project.name)
+    private readonly projectModel: Model<ProjectDocument>,
+  ) { }
 
   async findAll(userId: string): Promise<ProjectDocument[]> {
     const id = new Types.ObjectId(userId);
@@ -30,7 +31,7 @@ export class ProjectsService {
     if (!project) {
       throw new NotFoundException('Project not found');
     }
-    this.assertAccess(project, userId);
+    this.assertAccessToProject(project, userId);
     return project;
   }
 
@@ -60,7 +61,7 @@ export class ProjectsService {
   async remove(id: string, userId: string): Promise<void> {
     const project = await this.findOne(id, userId);
     this.assertOwner(project, userId);
-    await this.projectModel.findByIdAndDelete(id).exec();
+    await project.deleteOne();
   }
 
   async hasAccess(projectId: string, userId: string): Promise<boolean> {
@@ -69,7 +70,17 @@ export class ProjectsService {
     return this.checkAccess(project, userId);
   }
 
-  private assertAccess(project: ProjectDocument, userId: string): void {
+  async assertAccess(projectId: string, userId: string): Promise<void> {
+    const hasAccess = await this.hasAccess(projectId, userId);
+    if (!hasAccess) {
+      throw new ForbiddenException('Access denied to project');
+    }
+  }
+
+  private assertAccessToProject(
+    project: ProjectDocument,
+    userId: string,
+  ): void {
     if (!this.checkAccess(project, userId)) {
       throw new ForbiddenException('Access denied');
     }

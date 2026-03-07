@@ -11,7 +11,13 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import { ParseMongoIdPipe } from '../common/pipes/parse-mongo-id.pipe';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { CommentsService } from './comments.service';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { CommentResponseDto } from './dto/comment-response.dto';
@@ -30,35 +36,48 @@ export class CommentsController {
 
   @Get()
   @ApiOperation({ summary: 'List task comments' })
-  @ApiResponse({ status: 200, description: 'List of comments', type: [CommentResponseDto] })
+  @ApiResponse({
+    status: 200,
+    description: 'List of comments',
+    type: [CommentResponseDto],
+  })
   findAll(@Query() query: QueryCommentDto, @CurrentUser() user: UserDocument) {
     return this.commentsService.findAll(query.task, user._id.toString());
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get comment by id' })
-  @ApiResponse({ status: 200, description: 'Comment', type: CommentResponseDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Comment',
+    type: CommentResponseDto,
+  })
   @ApiResponse({ status: 404, description: 'Comment not found' })
-  findOne(@Param('id') id: string, @CurrentUser() user: UserDocument) {
+  findOne(@Param('id', ParseMongoIdPipe) id: string, @CurrentUser() user: UserDocument) {
     return this.commentsService.findOne(id, user._id.toString());
   }
 
   @Post()
   @ApiOperation({ summary: 'Create comment' })
-  @ApiResponse({ status: 201, description: 'Comment created', type: CommentResponseDto })
-  create(
-    @Body() dto: CreateCommentDto,
-    @CurrentUser() user: UserDocument,
-  ) {
+  @ApiResponse({
+    status: 201,
+    description: 'Comment created',
+    type: CommentResponseDto,
+  })
+  create(@Body() dto: CreateCommentDto, @CurrentUser() user: UserDocument) {
     return this.commentsService.create(dto, user._id.toString());
   }
 
   @Patch(':id')
   @ApiOperation({ summary: 'Update comment' })
-  @ApiResponse({ status: 200, description: 'Comment updated', type: CommentResponseDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Comment updated',
+    type: CommentResponseDto,
+  })
   @ApiResponse({ status: 403, description: 'Forbidden' })
   update(
-    @Param('id') id: string,
+    @Param('id', ParseMongoIdPipe) id: string,
     @Body() dto: UpdateCommentDto,
     @CurrentUser() user: UserDocument,
   ) {
@@ -71,7 +90,7 @@ export class CommentsController {
   @ApiResponse({ status: 204, description: 'Comment deleted' })
   @ApiResponse({ status: 403, description: 'Forbidden' })
   async remove(
-    @Param('id') id: string,
+    @Param('id', ParseMongoIdPipe) id: string,
     @CurrentUser() user: UserDocument,
   ): Promise<void> {
     await this.commentsService.remove(id, user._id.toString());

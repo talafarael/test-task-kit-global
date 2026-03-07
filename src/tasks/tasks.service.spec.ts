@@ -3,6 +3,7 @@ import { getModelToken } from '@nestjs/mongoose';
 import { NotFoundException } from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import { Task } from './schemas/task.schema';
+import { CommentsService } from '../comments/comments.service';
 import { ProjectsService } from '../projects/projects.service';
 import { TagsService } from '../tags/tags.service';
 
@@ -12,10 +13,22 @@ const mockTask = {
   project: { toString: () => 'p1' },
 };
 
+const execResolveEmpty = jest.fn().mockResolvedValue([]);
 const mockTaskModel = {
-  find: jest.fn().mockReturnValue({ sort: jest.fn().mockReturnValue({ exec: jest.fn().mockResolvedValue([]) }) }),
+  find: jest.fn().mockReturnValue({
+    sort: jest.fn().mockReturnValue({ exec: execResolveEmpty }),
+    select: jest.fn().mockReturnValue({ exec: execResolveEmpty }),
+    exec: execResolveEmpty,
+  }),
   findById: jest.fn().mockReturnValue({ exec: jest.fn().mockResolvedValue(mockTask) }),
+  findByIdAndDelete: jest.fn().mockReturnValue({ exec: jest.fn().mockResolvedValue(mockTask) }),
+  deleteMany: jest.fn().mockReturnValue({ exec: jest.fn().mockResolvedValue({ deletedCount: 0 }) }),
   prototype: { save: jest.fn() },
+};
+
+const mockCommentsService = {
+  removeByTaskId: jest.fn().mockResolvedValue(undefined),
+  removeByTaskIds: jest.fn().mockResolvedValue(undefined),
 };
 
 describe('TasksService', () => {
@@ -23,24 +36,27 @@ describe('TasksService', () => {
 
   beforeEach(async () => {
     jest.clearAllMocks();
-    const save = jest.fn().mockResolvedValue(mockTask);
-    const model = Object.assign(function () {
-      return { save };
+    const taskModel = Object.assign(function () {
+      return { save: jest.fn().mockResolvedValue(mockTask) };
     }, mockTaskModel);
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         TasksService,
-        { provide: getModelToken(Task.name), useValue: model },
+        { provide: getModelToken(Task.name), useValue: taskModel },
+        { provide: CommentsService, useValue: mockCommentsService },
         {
           provide: ProjectsService,
           useValue: {
-            hasAccess: jest.fn().mockResolvedValue(true),
+            assertAccess: jest.fn().mockResolvedValue(undefined),
             findAll: jest.fn().mockResolvedValue([{ _id: 'p1' }]),
           },
         },
         {
           provide: TagsService,
-          useValue: { findOne: jest.fn() },
+          useValue: {
+            findOne: jest.fn(),
+            validateTagsBelongToProject: jest.fn().mockResolvedValue(undefined),
+          },
         },
       ],
     }).compile();
@@ -59,7 +75,9 @@ describe('TasksService', () => {
   });
 
   it('findAll returns empty array', async () => {
-    const result = await service.findAll('507f1f77bcf86cd799439011', {});
+    const result = await service.findAll('507f1f77bcf86cd799439011', {
+      project: '507f1f77bcf86cd799439011',
+    });
     expect(result).toEqual([]);
   });
 });

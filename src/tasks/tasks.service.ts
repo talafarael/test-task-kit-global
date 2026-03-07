@@ -5,8 +5,8 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
-import { Task, TaskStatus, type TaskDocument } from './schemas/task.schema';
+import { FilterQuery, Model, Types } from 'mongoose';
+import { Task, type TaskDocument } from './schemas/task.schema';
 import type { CreateTaskDto } from './dto/create-task.dto';
 import type { UpdateTaskDto } from './dto/update-task.dto';
 import type { QueryTaskDto } from './dto/query-task.dto';
@@ -22,27 +22,14 @@ export class TasksService {
   ) { }
 
   async findAll(userId: string, query: QueryTaskDto): Promise<TaskDocument[]> {
-    const filter: Record<string, unknown> = {};
-    if (query.project) {
-      const hasAccess = await this.projectsService.hasAccess(
-        query.project,
-        userId,
-      );
-      if (!hasAccess) {
-        throw new ForbiddenException('Access denied to project');
-      }
-      filter.project = new Types.ObjectId(query.project);
-    } else {
-      const projects = await this.projectsService.findAll(userId);
-      const projectIds = projects.map((p) => p._id);
-      filter.project = { $in: projectIds };
-    }
-    if (query.status) {
-      filter.status = query.status;
-    }
-    if (query.country) {
-      filter.country = query.country;
-    }
+    await this.projectsService.assertAccess(query.project, userId);
+
+    const filter: FilterQuery<TaskDocument> = {
+      project: new Types.ObjectId(query.project),
+      ...(query.status && { status: query.status }),
+      ...(query.country && { country: query.country }),
+    };
+
     const sort: Record<string, 1 | -1> = {
       [query.sortBy ?? 'createdAt']: query.sortOrder === 'asc' ? 1 : -1,
     };
@@ -54,47 +41,19 @@ export class TasksService {
     if (!task) {
       throw new NotFoundException('Task not found');
     }
-    const hasAccess = await this.projectsService.hasAccess(
-      task.project.toString(),
-      userId,
-    );
-    if (!hasAccess) {
-      throw new ForbiddenException('Access denied');
-    }
+    await this.projectsService.assertAccess(task.project.toString(), userId);
     return task;
   }
 
   async create(dto: CreateTaskDto, userId: string): Promise<TaskDocument> {
-    const hasAccess = await this.projectsService.hasAccess(dto.project, userId);
-    if (!hasAccess) {
-      throw new ForbiddenException('Access denied to project');
-    }
-    if (dto.parentTask) {
-      const parent = await this.taskModel.findById(dto.parentTask).exec();
-      if (!parent || parent.project.toString() !== dto.project) {
-        throw new BadRequestException('Invalid parent task');
-      }
-    }
-    if (dto.tags?.length) {
-      for (const tagId of dto.tags) {
-        const tag = await this.tagsService.findOne(tagId, userId);
-        if (tag.project.toString() !== dto.project) {
-          throw new BadRequestException('Tag must belong to task project');
-        }
-      }
-    }
+    await this.validateTaskContext(dto.project, userId, {
+      parentTaskId: dto.parentTask,
+      tagIds: dto.tags,
+    });
+
     const task = new this.taskModel({
-      title: dto.title,
-      description: dto.description,
-      status: dto.status ?? TaskStatus.TODO,
-      project: new Types.ObjectId(dto.project),
+      ...this.mapDtoToTaskData(dto),
       creator: new Types.ObjectId(userId),
-      parentTask: dto.parentTask
-        ? new Types.ObjectId(dto.parentTask)
-        : undefined,
-      tags: dto.tags?.map((id) => new Types.ObjectId(id)) ?? [],
-      deadline: dto.deadline ? new Date(dto.deadline) : undefined,
-      country: dto.country,
     });
     return task.save();
   }
@@ -105,43 +64,54 @@ export class TasksService {
     userId: string,
   ): Promise<TaskDocument> {
     const task = await this.findOne(id, userId);
-    const hasAccess = await this.projectsService.hasAccess(
-      dto.project,
+    await this.validateTaskContext(dto.project, userId, {
+      parentTaskId: dto.parentTask,
+      tagIds: dto.tags,
+    });
+
+    Object.assign(task, this.mapDtoToTaskData(dto));
+    return task.save();
+  }
+
+  private async validateTaskContext(
+    projectId: string,
+    userId: string,
+    options?: { parentTaskId?: string; tagIds?: string[] },
+  ): Promise<void> {
+    await this.projectsService.assertAccess(projectId, userId);
+    if (options?.parentTaskId) {
+      await this.validateParentTask(options.parentTaskId, projectId);
+    }
+    await this.tagsService.validateTagsBelongToProject(
+      options?.tagIds ?? [],
       userId,
+      projectId,
     );
-    if (!hasAccess) {
-      throw new ForbiddenException('Access denied to project');
-    }
-    if (dto.parentTask) {
-      const parent = await this.taskModel.findById(dto.parentTask).exec();
-      if (!parent || parent.project.toString() !== dto.project) {
-        throw new BadRequestException('Invalid parent task');
-      }
-    }
-    if (dto.tags?.length) {
-      for (const tagId of dto.tags) {
-        const tag = await this.tagsService.findOne(tagId, userId);
-        if (tag.project.toString() !== dto.project) {
-          throw new BadRequestException('Tag must belong to task project');
-        }
-      }
-    }
-    Object.assign(task, {
+  }
+
+  private mapDtoToTaskData(
+    dto: CreateTaskDto | UpdateTaskDto,
+  ): Partial<TaskDocument> {
+    return {
       ...dto,
-      status: dto.status ?? TaskStatus.TODO,
       project: new Types.ObjectId(dto.project),
       parentTask: dto.parentTask
         ? new Types.ObjectId(dto.parentTask)
         : undefined,
-      tags: dto.tags?.map((id) => new Types.ObjectId(id)) ?? [],
-      deadline: dto.deadline ? new Date(dto.deadline) : undefined,
-    });
-    return task.save();
+      tags: (dto.tags ?? []).map((id) => new Types.ObjectId(id)),
+    };
+  }
+
+  private async validateParentTask(parentTask: string, project: string) {
+    const parent = await this.taskModel.findById(parentTask).exec();
+    if (!parent || parent.project.toString() !== project) {
+      throw new BadRequestException('Invalid parent task');
+    }
   }
 
   async remove(id: string, userId: string): Promise<void> {
-    await this.findOne(id, userId);
-    await this.taskModel.findByIdAndDelete(id).exec();
+    const task = await this.findOne(id, userId);
+    await task.deleteOne();
   }
 
   async findSubtasks(id: string, userId: string): Promise<TaskDocument[]> {
