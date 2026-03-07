@@ -43,8 +43,8 @@ describe('AuthService', () => {
     expect(result).toEqual({ access_token: 'token' });
   });
 
-  it('login returns access_token', async () => {
-    const result = await service.login(mockUser as never);
+  it('login returns access_token', () => {
+    const result = service.login(mockUser as never);
     expect(result).toEqual({ access_token: 'token' });
   });
 });

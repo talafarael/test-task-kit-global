@@ -1,7 +1,6 @@
 import {
   Injectable,
   NotFoundException,
-  ForbiddenException,
   BadRequestException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
@@ -64,7 +63,8 @@ export class TasksService {
     userId: string,
   ): Promise<TaskDocument> {
     const task = await this.findOne(id, userId);
-    await this.validateTaskContext(dto.project, userId, {
+    const projectId = task.project.toString();
+    await this.validateTaskContext(projectId, userId, {
       parentTaskId: dto.parentTask,
       tagIds: dto.tags,
     });
@@ -92,14 +92,15 @@ export class TasksService {
   private mapDtoToTaskData(
     dto: CreateTaskDto | UpdateTaskDto,
   ): Partial<TaskDocument> {
-    return {
-      ...dto,
-      project: new Types.ObjectId(dto.project),
-      parentTask: dto.parentTask
-        ? new Types.ObjectId(dto.parentTask)
-        : undefined,
-      tags: (dto.tags ?? []).map((id) => new Types.ObjectId(id)),
-    };
+    const result: Record<string, unknown> = { ...dto };
+    if ('project' in dto && dto.project != null) {
+      result['project'] = new Types.ObjectId(dto.project);
+    }
+    result['parentTask'] = dto.parentTask
+      ? new Types.ObjectId(dto.parentTask)
+      : undefined;
+    result['tags'] = (dto.tags ?? []).map((id) => new Types.ObjectId(id));
+    return result as Partial<TaskDocument>;
   }
 
   private async validateParentTask(parentTask: string, project: string) {

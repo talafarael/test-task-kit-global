@@ -35,15 +35,15 @@ export class AuthController {
   @UseGuards(LocalAuthGuard)
   @ApiOperation({ summary: 'Login' })
   @ApiResponse({
-    status: 201,
+    status: 200,
     description: 'Login successful',
     type: TokenResponseDto,
   })
   @ApiResponse({ status: 401, description: 'Invalid credentials' })
-  async login(
+  login(
     @Body() _dto: LoginDto,
     @CurrentUser() user: UserDocument,
-  ): Promise<TokenResponseDto> {
+  ): TokenResponseDto {
     return this.authService.login(user);
   }
 
@@ -53,7 +53,7 @@ export class AuthController {
   @ApiOperation({ summary: 'Get current user' })
   @ApiResponse({ status: 200, description: 'Current user' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  async me(@CurrentUser() user: UserDocument) {
+  me(@CurrentUser() user: UserDocument) {
     return {
       id: user._id.toString(),
       email: user.email,

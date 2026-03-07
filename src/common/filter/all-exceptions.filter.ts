@@ -59,12 +59,12 @@ export class AllExceptionsFilter implements ExceptionFilter {
     if (!stack) return null;
     const lines = stack.split('\n').slice(1);
     const frameRe =
-      /at\s+(?:(\S+)\s+\()?(?:.*[\/\\])?(?:src|dist)[\/\\]([^:]+):(\d+):(\d+)/;
+      /at\s+(?:(\S+)\s+\()?(?:.*[/\\])?(?:src|dist)[/\\]([^:]+):(\d+):(\d+)/;
     for (const line of lines) {
       const match = line.trim().match(frameRe);
       if (match) {
         const [, fn, file, lineNum] = match;
-        const module = file.replace(/\.(ts|js)$/, '').replace(/[\/\\]/g, '.');
+        const module = file.replace(/\.(ts|js)$/, '').replace(/[/\\]/g, '.');
         return fn ? `${module}.${fn}` : `${module}:${lineNum}`;
       }
     }

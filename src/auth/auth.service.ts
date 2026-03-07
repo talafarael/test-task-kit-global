@@ -20,7 +20,7 @@ export class AuthService {
     return this.generateTokenResponse(user);
   }
 
-  async login(user: UserDocument): Promise<TokenResponseDto> {
+  login(user: UserDocument): TokenResponseDto {
     return this.generateTokenResponse(user);
   }
 

@@ -28,7 +28,7 @@ export class CreateTaskDto {
 
   @ApiProperty({ enum: TaskStatus, required: false })
   @IsEnum(TaskStatus)
-  @Transform(({ value }) => value ?? TaskStatus.TODO)
+  @Transform(({ value }: { value: unknown }) => value ?? TaskStatus.TODO)
   @IsOptional()
   status?: TaskStatus;
 
@@ -44,8 +44,8 @@ export class CreateTaskDto {
   tags?: string[];
 
   @ApiProperty({ example: '2025-12-31T23:59:59.000Z', required: false })
-  @Transform(({ value }) =>
-    value != null && value !== '' ? new Date(value) : value,
+  @Transform(({ value }: { value: unknown }) =>
+    value != null && value !== '' ? new Date(value as string) : value,
   )
   @IsOptional()
   @IsDate()

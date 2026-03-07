@@ -13,16 +13,14 @@ export class User {
 
   @Prop({ required: true })
   name: string;
-
-  @Prop({ default: null })
-  refreshToken?: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
 
 UserSchema.set('toJSON', {
   transform: (_doc, ret) => {
-    const { password: _, ...rest } = ret;
-    return rest;
+    const doc = ret as Record<string, unknown>;
+    delete doc['password'];
+    return doc;
   },
 });

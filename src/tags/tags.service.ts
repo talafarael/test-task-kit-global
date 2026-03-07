@@ -11,6 +11,10 @@ import type { CreateTagDto } from './dto/create-tag.dto';
 import type { UpdateTagDto } from './dto/update-tag.dto';
 import { ProjectsService } from '../projects/projects.service';
 
+function escapeRegExp(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 @Injectable()
 export class TagsService {
   constructor(
@@ -39,7 +43,7 @@ export class TagsService {
     const existing = await this.tagModel
       .findOne({
         project: dto.project,
-        name: { $regex: new RegExp(`^${dto.name}$`, 'i') },
+        name: { $regex: new RegExp(`^${escapeRegExp(dto.name)}$`, 'i') },
       })
       .exec();
     if (existing) {
@@ -58,15 +62,17 @@ export class TagsService {
     userId: string,
   ): Promise<TagDocument> {
     const tag = await this.findOne(id, userId);
-    const existing = await this.tagModel
-      .findOne({
-        project: tag.project,
-        name: { $regex: new RegExp(`^${dto.name}$`, 'i') },
-        _id: { $ne: id },
-      })
-      .exec();
-    if (existing) {
-      throw new ConflictException('Tag with this name already exists');
+    if (dto.name !== undefined) {
+      const existing = await this.tagModel
+        .findOne({
+          project: tag.project,
+          name: { $regex: new RegExp(`^${escapeRegExp(dto.name)}$`, 'i') },
+          _id: { $ne: id },
+        })
+        .exec();
+      if (existing) {
+        throw new ConflictException('Tag with this name already exists');
+      }
     }
     Object.assign(tag, dto);
     return tag.save();

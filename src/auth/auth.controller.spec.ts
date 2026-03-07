@@ -47,8 +47,8 @@ describe('AuthController', () => {
     expect(result).toEqual({ access_token: 'token' });
   });
 
-  it('me returns user', async () => {
-    const result = await controller.me(mockUser as never);
+  it('me returns user', () => {
+    const result = controller.me(mockUser as never);
     expect(result).toEqual({ id: '1', email: 'a@a.com', name: 'A' });
   });
 });
