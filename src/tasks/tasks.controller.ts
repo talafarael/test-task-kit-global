@@ -33,7 +33,7 @@ import type { UserDocument } from '../users/schemas/user.schema';
 @Controller('tasks')
 @UseGuards(JwtAuthGuard)
 export class TasksController {
-  constructor(private readonly tasksService: TasksService) { }
+  constructor(private readonly tasksService: TasksService) {}
 
   @Get()
   @ApiOperation({ summary: 'List tasks with filters' })

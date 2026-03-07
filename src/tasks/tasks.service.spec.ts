@@ -20,9 +20,15 @@ const mockTaskModel = {
     select: jest.fn().mockReturnValue({ exec: execResolveEmpty }),
     exec: execResolveEmpty,
   }),
-  findById: jest.fn().mockReturnValue({ exec: jest.fn().mockResolvedValue(mockTask) }),
-  findByIdAndDelete: jest.fn().mockReturnValue({ exec: jest.fn().mockResolvedValue(mockTask) }),
-  deleteMany: jest.fn().mockReturnValue({ exec: jest.fn().mockResolvedValue({ deletedCount: 0 }) }),
+  findById: jest
+    .fn()
+    .mockReturnValue({ exec: jest.fn().mockResolvedValue(mockTask) }),
+  findByIdAndDelete: jest
+    .fn()
+    .mockReturnValue({ exec: jest.fn().mockResolvedValue(mockTask) }),
+  deleteMany: jest.fn().mockReturnValue({
+    exec: jest.fn().mockResolvedValue({ deletedCount: 0 }),
+  }),
   prototype: { save: jest.fn() },
 };
 
@@ -68,10 +74,12 @@ describe('TasksService', () => {
   });
 
   it('findOne throws NotFoundException when not found', async () => {
-    (mockTaskModel.findById as jest.Mock).mockReturnValue({
+    mockTaskModel.findById.mockReturnValue({
       exec: jest.fn().mockResolvedValue(null),
     });
-    await expect(service.findOne('bad', '507f1f77bcf86cd799439011')).rejects.toThrow(NotFoundException);
+    await expect(
+      service.findOne('bad', '507f1f77bcf86cd799439011'),
+    ).rejects.toThrow(NotFoundException);
   });
 
   it('findAll returns empty array', async () => {

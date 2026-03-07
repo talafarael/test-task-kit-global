@@ -10,8 +10,7 @@ export default () => ({
   port: parseInt(process.env.PORT ?? '3000', 10),
   mongodb: {
     uri:
-      process.env.MONGODB_URI ??
-      (isProd ? defaultMongoProd : defaultMongoDev),
+      process.env.MONGODB_URI ?? (isProd ? defaultMongoProd : defaultMongoDev),
   },
   jwt: {
     secret: process.env.JWT_SECRET ?? 'default-secret-change-in-production',

@@ -1,5 +1,10 @@
 import { Controller, Post, Body, Get, UseGuards } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { TokenResponseDto } from './dto/token-response.dto';
 import { RegisterDto } from './dto/register.dto';
@@ -16,7 +21,11 @@ export class AuthController {
 
   @Post('register')
   @ApiOperation({ summary: 'Register new user' })
-  @ApiResponse({ status: 201, description: 'User registered', type: TokenResponseDto })
+  @ApiResponse({
+    status: 201,
+    description: 'User registered',
+    type: TokenResponseDto,
+  })
   @ApiResponse({ status: 409, description: 'Email already exists' })
   async register(@Body() dto: RegisterDto): Promise<TokenResponseDto> {
     return this.authService.register(dto.email, dto.password, dto.name);
@@ -25,7 +34,11 @@ export class AuthController {
   @Post('login')
   @UseGuards(LocalAuthGuard)
   @ApiOperation({ summary: 'Login' })
-  @ApiResponse({ status: 201, description: 'Login successful', type: TokenResponseDto })
+  @ApiResponse({
+    status: 201,
+    description: 'Login successful',
+    type: TokenResponseDto,
+  })
   @ApiResponse({ status: 401, description: 'Invalid credentials' })
   async login(
     @Body() _dto: LoginDto,

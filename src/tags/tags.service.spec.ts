@@ -13,8 +13,12 @@ const mockTag = {
 
 const mockTagModel = {
   find: jest.fn().mockReturnValue({ exec: jest.fn().mockResolvedValue([]) }),
-  findOne: jest.fn().mockReturnValue({ exec: jest.fn().mockResolvedValue(null) }),
-  findById: jest.fn().mockReturnValue({ exec: jest.fn().mockResolvedValue(mockTag) }),
+  findOne: jest
+    .fn()
+    .mockReturnValue({ exec: jest.fn().mockResolvedValue(null) }),
+  findById: jest
+    .fn()
+    .mockReturnValue({ exec: jest.fn().mockResolvedValue(mockTag) }),
   prototype: { save: jest.fn() },
 };
 
@@ -45,14 +49,19 @@ describe('TagsService', () => {
   });
 
   it('findOne throws NotFoundException when not found', async () => {
-    (mockTagModel.findById as jest.Mock).mockReturnValue({
+    mockTagModel.findById.mockReturnValue({
       exec: jest.fn().mockResolvedValue(null),
     });
-    await expect(service.findOne('bad', '507f1f77bcf86cd799439011')).rejects.toThrow(NotFoundException);
+    await expect(
+      service.findOne('bad', '507f1f77bcf86cd799439011'),
+    ).rejects.toThrow(NotFoundException);
   });
 
   it('findAll returns empty array', async () => {
-    const result = await service.findAll('507f1f77bcf86cd799439011', '507f1f77bcf86cd799439012');
+    const result = await service.findAll(
+      '507f1f77bcf86cd799439011',
+      '507f1f77bcf86cd799439012',
+    );
     expect(result).toEqual([]);
   });
 });

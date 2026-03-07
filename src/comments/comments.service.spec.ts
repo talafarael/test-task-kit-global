@@ -13,9 +13,15 @@ const mockComment = {
 };
 
 const mockCommentModel = {
-  find: jest.fn().mockReturnValue({ sort: jest.fn().mockReturnValue({ exec: jest.fn().mockResolvedValue([]) }) }),
-  findById: jest.fn().mockReturnValue({ exec: jest.fn().mockResolvedValue(mockComment) }),
-  findByIdAndDelete: jest.fn().mockReturnValue({ exec: jest.fn().mockResolvedValue(null) }),
+  find: jest.fn().mockReturnValue({
+    sort: jest.fn().mockReturnValue({ exec: jest.fn().mockResolvedValue([]) }),
+  }),
+  findById: jest
+    .fn()
+    .mockReturnValue({ exec: jest.fn().mockResolvedValue(mockComment) }),
+  findByIdAndDelete: jest
+    .fn()
+    .mockReturnValue({ exec: jest.fn().mockResolvedValue(null) }),
   prototype: { save: jest.fn() },
 };
 
@@ -46,12 +52,12 @@ describe('CommentsService', () => {
   });
 
   it('findOne throws NotFoundException when not found', async () => {
-    (mockCommentModel.findById as jest.Mock).mockReturnValue({
+    mockCommentModel.findById.mockReturnValue({
       exec: jest.fn().mockResolvedValue(null),
     });
-    await expect(service.findOne('bad', '507f1f77bcf86cd799439011')).rejects.toThrow(
-      NotFoundException,
-    );
+    await expect(
+      service.findOne('bad', '507f1f77bcf86cd799439011'),
+    ).rejects.toThrow(NotFoundException);
   });
 
   it('findAll returns empty array', async () => {

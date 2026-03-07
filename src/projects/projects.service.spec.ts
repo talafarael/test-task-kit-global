@@ -12,8 +12,12 @@ const mockProject = {
 };
 
 const mockProjectModel = {
-  find: jest.fn().mockReturnValue({ sort: jest.fn().mockReturnValue({ exec: jest.fn().mockResolvedValue([]) }) }),
-  findById: jest.fn().mockReturnValue({ exec: jest.fn().mockResolvedValue(mockProject) }),
+  find: jest.fn().mockReturnValue({
+    sort: jest.fn().mockReturnValue({ exec: jest.fn().mockResolvedValue([]) }),
+  }),
+  findById: jest
+    .fn()
+    .mockReturnValue({ exec: jest.fn().mockResolvedValue(mockProject) }),
   prototype: { save: jest.fn() },
 };
 
@@ -40,10 +44,12 @@ describe('ProjectsService', () => {
   });
 
   it('findOne throws NotFoundException when not found', async () => {
-    (mockProjectModel.findById as jest.Mock).mockReturnValue({
+    mockProjectModel.findById.mockReturnValue({
       exec: jest.fn().mockResolvedValue(null),
     });
-    await expect(service.findOne('bad', '507f1f77bcf86cd799439011')).rejects.toThrow(NotFoundException);
+    await expect(
+      service.findOne('bad', '507f1f77bcf86cd799439011'),
+    ).rejects.toThrow(NotFoundException);
   });
 
   it('findAll returns empty array', async () => {

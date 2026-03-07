@@ -12,7 +12,12 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { ParseMongoIdPipe } from '../common/pipes/parse-mongo-id.pipe';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { TagsService } from './tags.service';
 import { CreateTagDto } from './dto/create-tag.dto';
 import { TagResponseDto } from './dto/tag-response.dto';
@@ -31,7 +36,11 @@ export class TagsController {
 
   @Get()
   @ApiOperation({ summary: 'List project tags' })
-  @ApiResponse({ status: 200, description: 'List of tags', type: [TagResponseDto] })
+  @ApiResponse({
+    status: 200,
+    description: 'List of tags',
+    type: [TagResponseDto],
+  })
   findAll(@Query() query: QueryTagDto, @CurrentUser() user: UserDocument) {
     return this.tagsService.findAll(query.project, user._id.toString());
   }
@@ -40,23 +49,31 @@ export class TagsController {
   @ApiOperation({ summary: 'Get tag by id' })
   @ApiResponse({ status: 200, description: 'Tag', type: TagResponseDto })
   @ApiResponse({ status: 404, description: 'Tag not found' })
-  findOne(@Param('id', ParseMongoIdPipe) id: string, @CurrentUser() user: UserDocument) {
+  findOne(
+    @Param('id', ParseMongoIdPipe) id: string,
+    @CurrentUser() user: UserDocument,
+  ) {
     return this.tagsService.findOne(id, user._id.toString());
   }
 
   @Post()
   @ApiOperation({ summary: 'Create tag' })
-  @ApiResponse({ status: 201, description: 'Tag created', type: TagResponseDto })
-  create(
-    @Body() dto: CreateTagDto,
-    @CurrentUser() user: UserDocument,
-  ) {
+  @ApiResponse({
+    status: 201,
+    description: 'Tag created',
+    type: TagResponseDto,
+  })
+  create(@Body() dto: CreateTagDto, @CurrentUser() user: UserDocument) {
     return this.tagsService.create(dto, user._id.toString());
   }
 
   @Patch(':id')
   @ApiOperation({ summary: 'Update tag' })
-  @ApiResponse({ status: 200, description: 'Tag updated', type: TagResponseDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Tag updated',
+    type: TagResponseDto,
+  })
   update(
     @Param('id', ParseMongoIdPipe) id: string,
     @Body() dto: UpdateTagDto,

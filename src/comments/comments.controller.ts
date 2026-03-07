@@ -53,7 +53,10 @@ export class CommentsController {
     type: CommentResponseDto,
   })
   @ApiResponse({ status: 404, description: 'Comment not found' })
-  findOne(@Param('id', ParseMongoIdPipe) id: string, @CurrentUser() user: UserDocument) {
+  findOne(
+    @Param('id', ParseMongoIdPipe) id: string,
+    @CurrentUser() user: UserDocument,
+  ) {
     return this.commentsService.findOne(id, user._id.toString());
   }
 

@@ -16,7 +16,7 @@ export class TagsService {
   constructor(
     @InjectModel(Tag.name) private readonly tagModel: Model<TagDocument>,
     private readonly projectsService: ProjectsService,
-  ) { }
+  ) {}
 
   async findAll(projectId: string, userId: string): Promise<TagDocument[]> {
     await this.projectsService.assertAccess(projectId, userId);

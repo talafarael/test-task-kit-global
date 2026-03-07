@@ -14,7 +14,7 @@ export class ProjectsService {
   constructor(
     @InjectModel(Project.name)
     private readonly projectModel: Model<ProjectDocument>,
-  ) { }
+  ) {}
 
   async findAll(userId: string): Promise<ProjectDocument[]> {
     const id = new Types.ObjectId(userId);

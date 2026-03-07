@@ -11,7 +11,12 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { ParseMongoIdPipe } from '../common/pipes/parse-mongo-id.pipe';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { ProjectsService } from './projects.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { ProjectResponseDto } from './dto/project-response.dto';
@@ -29,32 +34,48 @@ export class ProjectsController {
 
   @Get()
   @ApiOperation({ summary: 'List user projects' })
-  @ApiResponse({ status: 200, description: 'List of projects', type: [ProjectResponseDto] })
+  @ApiResponse({
+    status: 200,
+    description: 'List of projects',
+    type: [ProjectResponseDto],
+  })
   findAll(@CurrentUser() user: UserDocument) {
     return this.projectsService.findAll(user._id.toString());
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get project by id' })
-  @ApiResponse({ status: 200, description: 'Project', type: ProjectResponseDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Project',
+    type: ProjectResponseDto,
+  })
   @ApiResponse({ status: 404, description: 'Project not found' })
-  findOne(@Param('id', ParseMongoIdPipe) id: string, @CurrentUser() user: UserDocument) {
+  findOne(
+    @Param('id', ParseMongoIdPipe) id: string,
+    @CurrentUser() user: UserDocument,
+  ) {
     return this.projectsService.findOne(id, user._id.toString());
   }
 
   @Post()
   @ApiOperation({ summary: 'Create project' })
-  @ApiResponse({ status: 201, description: 'Project created', type: ProjectResponseDto })
-  create(
-    @Body() dto: CreateProjectDto,
-    @CurrentUser() user: UserDocument,
-  ) {
+  @ApiResponse({
+    status: 201,
+    description: 'Project created',
+    type: ProjectResponseDto,
+  })
+  create(@Body() dto: CreateProjectDto, @CurrentUser() user: UserDocument) {
     return this.projectsService.create(dto, user._id.toString());
   }
 
   @Patch(':id')
   @ApiOperation({ summary: 'Update project' })
-  @ApiResponse({ status: 200, description: 'Project updated', type: ProjectResponseDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Project updated',
+    type: ProjectResponseDto,
+  })
   @ApiResponse({ status: 403, description: 'Forbidden' })
   update(
     @Param('id', ParseMongoIdPipe) id: string,

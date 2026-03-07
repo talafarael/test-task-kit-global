@@ -13,7 +13,10 @@ export class QueryTaskFiltersDto {
   @IsOptional()
   status?: TaskStatus;
 
-  @ApiProperty({ enum: ['createdAt', 'deadline', 'title', 'status'], required: false })
+  @ApiProperty({
+    enum: ['createdAt', 'deadline', 'title', 'status'],
+    required: false,
+  })
   @IsOptional()
   @IsIn(['createdAt', 'deadline', 'title', 'status'])
   sortBy?: 'createdAt' | 'deadline' | 'title' | 'status';

@@ -6,13 +6,21 @@ import { User } from './schemas/user.schema';
 
 const mockUserModel = Object.assign(
   function () {
-    return { save: jest.fn().mockResolvedValue({ _id: '1', email: 'a@a.com', name: 'A' }) };
+    return {
+      save: jest
+        .fn()
+        .mockResolvedValue({ _id: '1', email: 'a@a.com', name: 'A' }),
+    };
   },
   {
     findOne: jest.fn().mockReturnValue({
-      select: jest.fn().mockReturnValue({ exec: jest.fn().mockResolvedValue(null) }),
+      select: jest
+        .fn()
+        .mockReturnValue({ exec: jest.fn().mockResolvedValue(null) }),
     }),
-    findById: jest.fn().mockReturnValue({ exec: jest.fn().mockResolvedValue(null) }),
+    findById: jest
+      .fn()
+      .mockReturnValue({ exec: jest.fn().mockResolvedValue(null) }),
   },
 );
 

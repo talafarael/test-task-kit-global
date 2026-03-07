@@ -1,5 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsOptional, IsMongoId, MinLength, Matches } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsMongoId,
+  MinLength,
+  Matches,
+} from 'class-validator';
 
 export class CreateTagDto {
   @ApiProperty({ example: 'urgent', minLength: 2 })

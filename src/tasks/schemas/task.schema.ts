@@ -51,7 +51,7 @@ export const TaskSchema = SchemaFactory.createForClass(Task);
 TaskSchema.pre(
   'deleteOne',
   { document: true, query: false },
-  async function() {
+  async function () {
     await Promise.all([
       this.model('Comment').deleteMany({ task: this._id }),
       this.model('Task').updateMany(

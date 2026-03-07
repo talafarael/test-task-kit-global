@@ -19,7 +19,7 @@ export class TasksService {
     @InjectModel(Task.name) private readonly taskModel: Model<TaskDocument>,
     private readonly projectsService: ProjectsService,
     private readonly tagsService: TagsService,
-  ) { }
+  ) {}
 
   async findAll(userId: string, query: QueryTaskDto): Promise<TaskDocument[]> {
     await this.projectsService.assertAccess(query.project, userId);

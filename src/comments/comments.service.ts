@@ -19,7 +19,7 @@ export class CommentsService {
     private readonly commentModel: Model<CommentDocument>,
     @Inject(forwardRef(() => TasksService))
     private readonly tasksService: TasksService,
-  ) { }
+  ) {}
 
   async findAll(taskId: string, userId: string): Promise<CommentDocument[]> {
     await this.tasksService.findOne(taskId, userId);
